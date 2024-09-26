@@ -14,4 +14,5 @@ import lombok.Setter;
 public class TelefoneDTO {
 	private String numero;
 	private String ddd;
+	private Long id;
 }
