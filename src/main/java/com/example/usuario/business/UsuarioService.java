@@ -10,6 +10,7 @@ import com.example.usuario.infrastructure.entity.Usuario;
 import com.example.usuario.infrastructure.exceptions.ConflictException;
 import com.example.usuario.infrastructure.exceptions.ResourceNotFoundException;
 import com.example.usuario.infrastructure.repository.UsuarioRepository;
+import com.example.usuario.security.JwtUtil;
 
 @Service
 public class UsuarioService {
@@ -20,6 +21,8 @@ public class UsuarioService {
 	private UsuarioConverter converter;
 	@Autowired
 	private PasswordEncoder encoder;
+	@Autowired
+	private JwtUtil jwt;
 
 	public UsuarioDTO insertUsuario(UsuarioDTO uDTO) {
 		emailExiste(uDTO.getEmail());
@@ -55,4 +58,22 @@ public class UsuarioService {
 	public void deletaUsuarioPorEmail(String email) {
 		repo.deleteByEmail(email);
 	}
+	
+	public UsuarioDTO atualizaDadosUsuario(String token, UsuarioDTO dto){
+        //Aqui buscamos o email do usuário através do token (tirar a obrigatoriedade do email)
+        String email = jwt.extrairEmailToken(token.substring(7));
+
+        //Criptografia de senha
+        dto.setSenha(dto.getSenha() != null ? encoder.encode(dto.getSenha()) : null);
+
+        //Busca os dados do usuário no banco de dados
+        Usuario usuarioEntity = repo.findByEmail(email).orElseThrow(() ->
+                new ResourceNotFoundException("Email não localizado"));
+
+        //Mesclou os dados que recebemos na requisição DTO com os dados do banco de dados
+        Usuario usuario = converter.updateUsuario(dto, usuarioEntity);
+
+        //Salvou os dados do usuário convertido e depois pegou o retorno e converteu para UsuarioDTO
+        return converter.forUsuarioDTO(repo.save(usuario));
+    }
 }
