@@ -13,5 +13,5 @@ import lombok.Setter;
 @Builder
 public class EnderecoDTO {
 	private String rua, complemento, cidade, estado, cep;
-	private Long numero;
+	private Long id, numero;
 }

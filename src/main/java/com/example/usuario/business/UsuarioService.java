@@ -5,10 +5,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.usuario.business.converter.UsuarioConverter;
+import com.example.usuario.business.dto.EnderecoDTO;
+import com.example.usuario.business.dto.TelefoneDTO;
 import com.example.usuario.business.dto.UsuarioDTO;
+import com.example.usuario.infrastructure.entity.Endereco;
+import com.example.usuario.infrastructure.entity.Telefone;
 import com.example.usuario.infrastructure.entity.Usuario;
 import com.example.usuario.infrastructure.exceptions.ConflictException;
 import com.example.usuario.infrastructure.exceptions.ResourceNotFoundException;
+import com.example.usuario.infrastructure.repository.EnderecoRepository;
+import com.example.usuario.infrastructure.repository.TelefoneRepository;
 import com.example.usuario.infrastructure.repository.UsuarioRepository;
 import com.example.usuario.security.JwtUtil;
 
@@ -23,6 +29,10 @@ public class UsuarioService {
 	private PasswordEncoder encoder;
 	@Autowired
 	private JwtUtil jwt;
+	@Autowired
+	private EnderecoRepository endRepo;
+	@Autowired
+	private TelefoneRepository telRepo;
 
 	public UsuarioDTO insertUsuario(UsuarioDTO uDTO) {
 		emailExiste(uDTO.getEmail());
@@ -60,20 +70,23 @@ public class UsuarioService {
 	}
 	
 	public UsuarioDTO atualizaDadosUsuario(String token, UsuarioDTO dto){
-        //Aqui buscamos o email do usuário através do token (tirar a obrigatoriedade do email)
         String email = jwt.extrairEmailToken(token.substring(7));
-
-        //Criptografia de senha
         dto.setSenha(dto.getSenha() != null ? encoder.encode(dto.getSenha()) : null);
-
-        //Busca os dados do usuário no banco de dados
         Usuario usuarioEntity = repo.findByEmail(email).orElseThrow(() ->
                 new ResourceNotFoundException("Email não localizado"));
-
-        //Mesclou os dados que recebemos na requisição DTO com os dados do banco de dados
         Usuario usuario = converter.updateUsuario(dto, usuarioEntity);
-
-        //Salvou os dados do usuário convertido e depois pegou o retorno e converteu para UsuarioDTO
         return converter.forUsuarioDTO(repo.save(usuario));
     }
+	
+	public EnderecoDTO atualizaEndereco(Long idEndereco, EnderecoDTO dto) {
+		Endereco entity = endRepo.findById(idEndereco).orElseThrow(() -> new ResourceNotFoundException("Endereco não encotrado."));
+		Endereco endereco = converter.updateEndereco(dto, entity);
+		return converter.forEnderecoDTO(endRepo.save(endereco));
+	}
+	
+	public TelefoneDTO atualizaTelefone(Long idTelefone, TelefoneDTO dto) {
+		Telefone entity = telRepo.findById(idTelefone).orElseThrow(() -> new ResourceNotFoundException("Telefone não encotrado."));
+		Telefone telefone = converter.updateTelefone(dto, entity);
+		return converter.forTelefoneDTO(telRepo.save(telefone));
+	}
 }

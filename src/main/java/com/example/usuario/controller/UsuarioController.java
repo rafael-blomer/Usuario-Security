@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.usuario.business.UsuarioService;
+import com.example.usuario.business.dto.EnderecoDTO;
+import com.example.usuario.business.dto.TelefoneDTO;
 import com.example.usuario.business.dto.UsuarioDTO;
 import com.example.usuario.security.JwtUtil;
 
@@ -62,4 +64,13 @@ public class UsuarioController {
     	return ResponseEntity.ok(service.atualizaDadosUsuario(token, dto));
     }
 
+    @PutMapping("/endereco")
+    public ResponseEntity<EnderecoDTO> atualizaEndereco(@RequestBody EnderecoDTO dto, @RequestParam("id") Long id) {
+    	return ResponseEntity.ok(service.atualizaEndereco(id, dto));
+    }
+    
+    @PutMapping("/telefone")
+    public ResponseEntity<TelefoneDTO> atualizaTelefone(@RequestBody TelefoneDTO dto, @RequestParam("id") Long id) {
+    	return ResponseEntity.ok(service.atualizaTelefone(id, dto));
+    }
 }
